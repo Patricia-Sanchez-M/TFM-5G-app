@@ -17,12 +17,8 @@ MAPA_IPS = {
     '70.156.233.145': 'Cloud - Azure 3',
    
     # Edge Sites
-    '192.168.0.54': 'Edge - M.TAH',
-    '192.168.1.246': 'Edge - B.TC',
-    '192.168.0.118': 'Edge - BL.AR',
-    '192.168.0.150': 'Edge - S.SB',
-    '192.168.1.102': 'Edge - C.MO',
-    '192.168.1.134': 'Edge - V.VS',
+    '192.168.0.54': 'Edge - Madrid',
+    '192.168.0.150': 'Edge - Sevilla',
 }
 
 uploaded_files = st.file_uploader("Sube uno o varios archivos CSV de métricas", type=["csv"], accept_multiple_files=True)
