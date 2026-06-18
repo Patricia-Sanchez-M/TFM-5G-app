@@ -125,7 +125,7 @@ if uploaded_files:
     st.write("---")
 
     # --- MENÚ SUPERIOR (TABS) ---
-    tab_latencia, tab_jitter, tab_red = st.tabs(["📉 Análisis de Latencia", "〰️ Análisis de Jitter", "🗼 Info de Red & Celdas"])
+    tab_latencia, tab_jitter, tab_red = st.tabs(["📉 Análisis de Latencia", "〰️ Análisis de Jitter y Loss", "🗼 Info de Red & Celdas"])
 
     with tab_latencia:
         st.header("Análisis de RTT (Round Trip Time)")
@@ -150,21 +150,58 @@ if uploaded_files:
         df_resumen = df_filtrado.drop_duplicates(subset=['test_id']).dropna(subset=['jitter_ms'])
         
         if not df_resumen.empty:
+            # 1. Gráfico de Jitter
             st.subheader("Jitter Medio por Destino")
             jitter_avg = df_resumen.groupby('nombre_destino')['jitter_ms'].mean().reset_index()
             fig_jit = px.bar(jitter_avg, x='nombre_destino', y='jitter_ms', 
                              color='nombre_destino', text_auto='.2f', title="Comparativa de Jitter")
             st.plotly_chart(fig_jit, use_container_width=True)
             
-            if df_resumen['loss_pct'].sum() > 0:
-                st.subheader("Pérdida de Paquetes por Destino")
-                loss_avg = df_resumen.groupby('nombre_destino')['loss_pct'].mean().reset_index()
-                fig_loss = px.bar(loss_avg, x='nombre_destino', y='loss_pct', 
-                                 color='nombre_destino', text_auto='.2f', title="Comparativa de Loss % (Excluyendo bloqueos Cloud)")
-                st.plotly_chart(fig_loss, use_container_width=True)
-            else:
-                st.success("¡Excelente! No se ha detectado pérdida de paquetes (0%) en los datos filtrados.")
+            st.write("---")
             
+            # 2. Análisis de Packet Loss rediseñado (Nuevos titulares)
+            st.subheader("Análisis de Pérdida de Paquetes (Packet Loss)")
+            
+            df_cloud_resumen = df_resumen[df_resumen['nombre_destino'].str.contains('Cloud', na=False)]
+            df_edge_resumen = df_resumen[df_resumen['nombre_destino'].str.contains('Edge', na=False)]
+            
+            col_loss1, col_loss2 = st.columns(2)
+            
+            with col_loss1:
+                st.markdown("#### ☁️ Estado Nubes Públicas")
+                if not df_cloud_resumen.empty:
+                    loss_cloud_avg = df_cloud_resumen['loss_pct'].mean()
+                    if loss_cloud_avg == 0:
+                        st.success("✅ **0.00% de pérdida media** detectada en Nubes.")
+                    else:
+                        st.info(f"Pérdida media real en Nubes: **{loss_cloud_avg:.2f}%**")
+                else:
+                    st.write("Sin datos de Cloud en la selección.")
+            
+            with col_loss2:
+                st.markdown("#### 🏭 Estado Nodos Edge")
+                if not df_edge_resumen.empty:
+                    loss_edge_avg = df_edge_resumen['loss_pct'].mean()
+                    st.metric("Pérdida media global en Edge", f"{loss_edge_avg:.2f} %")
+                else:
+                    st.write("Sin datos de Edge en la selección.")
+
+            # 3. Histograma exclusivo para el Edge
+            if not df_edge_resumen.empty and df_edge_resumen['loss_pct'].sum() > 0:
+                st.markdown("**Distribución de Pérdidas en el Edge**")
+                fig_hist = px.histogram(df_edge_resumen, x='loss_pct', 
+                                        nbins=20, 
+                                        title="Frecuencia de % de Pérdida en Ráfagas al Edge",
+                                        labels={'loss_pct': '% de Paquetes Perdidos', 'count': 'Número de Ráfagas'},
+                                        color_discrete_sequence=['#FF7F0E']) # Color naranja
+                fig_hist.update_layout(bargap=0.05)
+                st.plotly_chart(fig_hist, use_container_width=True)
+            elif not df_edge_resumen.empty:
+                st.success("✅ 0% de pérdida de paquetes en el Edge en las muestras actuales.")
+            
+            st.write("---")
+            
+            # 4. Detalle en crudo
             st.subheader("Detalle de las Ráfagas (Bursts)")
             st.dataframe(df_resumen[['ts_iso', 'nombre_destino', 'jitter_ms', 'loss_pct']], use_container_width=True)
         else:
