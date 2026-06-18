@@ -159,7 +159,7 @@ if uploaded_files:
             
             st.write("---")
             
-            # 2. Análisis de Packet Loss rediseñado (Nuevos titulares)
+            # 2. Análisis de Packet Loss
             st.subheader("Análisis de Pérdida de Paquetes (Packet Loss)")
             
             df_cloud_resumen = df_resumen[df_resumen['nombre_destino'].str.contains('Cloud', na=False)]
@@ -172,7 +172,7 @@ if uploaded_files:
                 if not df_cloud_resumen.empty:
                     loss_cloud_avg = df_cloud_resumen['loss_pct'].mean()
                     if loss_cloud_avg == 0:
-                        st.success("✅ **0.00% de pérdida media** detectada en Nubes.")
+                        st.success("**0.00% de pérdida media** detectada en Nubes.")
                     else:
                         st.info(f"Pérdida media real en Nubes: **{loss_cloud_avg:.2f}%**")
                 else:
@@ -186,18 +186,26 @@ if uploaded_files:
                 else:
                     st.write("Sin datos de Edge en la selección.")
 
-            # 3. Histograma exclusivo para el Edge
-            if not df_edge_resumen.empty and df_edge_resumen['loss_pct'].sum() > 0:
-                st.markdown("**Distribución de Pérdidas en el Edge**")
-                fig_hist = px.histogram(df_edge_resumen, x='loss_pct', 
-                                        nbins=20, 
-                                        title="Frecuencia de % de Pérdida en Ráfagas al Edge",
-                                        labels={'loss_pct': '% de Paquetes Perdidos', 'count': 'Número de Ráfagas'},
-                                        color_discrete_sequence=['#FF7F0E']) # Color naranja
-                fig_hist.update_layout(bargap=0.05)
-                st.plotly_chart(fig_hist, use_container_width=True)
-            elif not df_edge_resumen.empty:
-                st.success("✅ 0% de pérdida de paquetes en el Edge en las muestras actuales.")
+            # 3. Línea de tiempo temporal exclusiva para el Edge
+            if not df_edge_resumen.empty:
+                st.markdown("**Evolución Temporal de Pérdidas en el Edge**")
+                
+                # Ordenamos por tiempo para que la línea tenga sentido cronológico
+                df_edge_linea = df_edge_resumen.sort_values('ts_iso')
+                
+                fig_time = px.line(df_edge_linea, x='ts_iso', y='loss_pct', 
+                                   title="Packet Loss a lo largo de la prueba (Nodos Locales)",
+                                   labels={'loss_pct': '% de Paquetes Perdidos', 'ts_iso': 'Momento de la prueba'},
+                                   color_discrete_sequence=['#FF7F0E'], # Mantenemos el naranja
+                                   markers=True) # Activamos los puntos para ver cada ráfaga
+                
+                # Fijamos el eje Y para que siempre empiece en 0. 
+                # Si el máximo es 0, lo fijamos hasta 10 para que la línea plana se vea abajo y no en medio.
+                max_loss = df_edge_linea['loss_pct'].max()
+                y_max = 10 if max_loss == 0 else max_loss + 5
+                fig_time.update_yaxes(range=[-1, y_max])
+                
+                st.plotly_chart(fig_time, use_container_width=True)
             
             st.write("---")
             
