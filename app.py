@@ -194,7 +194,6 @@ if uploaded_files:
                 df_edge_linea = df_edge_resumen.sort_values('ts_iso')
                 
                 fig_time = px.line(df_edge_linea, x='ts_iso', y='loss_pct', 
-                                   title="Packet Loss a lo largo de la prueba (Nodos Locales)",
                                    labels={'loss_pct': '% de Paquetes Perdidos', 'ts_iso': 'Momento de la prueba'},
                                    color_discrete_sequence=['#FF7F0E'], # Mantenemos el naranja
                                    markers=True) # Activamos los puntos para ver cada ráfaga
