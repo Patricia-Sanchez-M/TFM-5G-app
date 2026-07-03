@@ -6,7 +6,7 @@ import plotly.express as px
 # Configuración de la página
 st.set_page_config(page_title="Network Analysis", layout="wide")
 
-st.title("🚀 Análisis Avanzado de Conectividad 5G/4G")
+st.title("Análisis Avanzado de Conectividad 5G/4G")
 
 # --- DICCIONARIO DE IPS ---
 MAPA_IPS = {
@@ -76,7 +76,7 @@ if uploaded_files:
     tabla_final = tabla_final[~tabla_final['test_id'].isin(test_ids_descartados)]
 
     # --- BARRA LATERAL (Filtros Globales) ---
-    st.sidebar.header("⚙️ Filtros Globales")
+    st.sidebar.header("Filtros Globales")
     
     rat_list = tabla_final['rat'].dropna().unique().tolist()
     rat_sel = st.sidebar.multiselect("Tecnología (RAT):", rat_list, default=rat_list)
@@ -88,7 +88,7 @@ if uploaded_files:
     df_filtrado = tabla_final[mask]
 
     # --- MÉTRICAS GLOBALES DIVIDIDAS (Cloud vs Edge) ---
-    st.subheader(f"📊 Resumen de Rendimiento ({len(uploaded_files)} archivos cargados)")
+    st.subheader(f"Resumen de Rendimiento ({len(uploaded_files)} archivos cargados)")
     
     if not df_filtrado.empty:
         # Separar los datos en dos bloques basándonos en el nombre
@@ -96,7 +96,7 @@ if uploaded_files:
         df_edge = df_filtrado[df_filtrado['nombre_destino'].str.contains('Edge', na=False)]
         
         # --- BLOQUE CLOUD ---
-        st.markdown("#### ☁️ Agregado Nubes Públicas (Cloud)")
+        st.markdown("#### Agregado Nubes Públicas (Cloud)")
         if not df_cloud.empty:
             c1, c2, c3, c4 = st.columns(4)
             c1.metric("Latencia Media", f"{df_cloud['rtt_ms'].mean():.2f} ms")
@@ -109,7 +109,7 @@ if uploaded_files:
         st.write("") # Pequeño espacio visual
         
         # --- BLOQUE EDGE ---
-        st.markdown("#### 🏭 Agregado Nodos Locales (Edge)")
+        st.markdown("#### Agregado Nodos Locales (Edge)")
         if not df_edge.empty:
             e1, e2, e3, e4 = st.columns(4)
             e1.metric("Latencia Media", f"{df_edge['rtt_ms'].mean():.2f} ms")
@@ -168,7 +168,7 @@ if uploaded_files:
             col_loss1, col_loss2 = st.columns(2)
             
             with col_loss1:
-                st.markdown("#### ☁️ Estado Nubes Públicas")
+                st.markdown("#### Estado Nubes Públicas")
                 if not df_cloud_resumen.empty:
                     loss_cloud_avg = df_cloud_resumen['loss_pct'].mean()
                     if loss_cloud_avg == 0:
@@ -179,7 +179,7 @@ if uploaded_files:
                     st.write("Sin datos de Cloud en la selección.")
             
             with col_loss2:
-                st.markdown("#### 🏭 Estado Nodos Edge")
+                st.markdown("#### Estado Nodos Edge")
                 if not df_edge_resumen.empty:
                     loss_edge_avg = df_edge_resumen['loss_pct'].mean()
                     st.metric("Pérdida media global en Edge", f"{loss_edge_avg:.2f} %")
